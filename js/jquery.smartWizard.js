@@ -184,6 +184,7 @@ function SmartWizard(target, options) {
                 }
             }
         }
+        
         if ($this.options.height > 0) {
             $this.elmStepContainer.height($this.options.height);
         } else {
@@ -347,7 +348,22 @@ function SmartWizard(target, options) {
         _loadContent(this, nextStepIdx);
     };
 
-    SmartWizard.prototype.goToStep = function(stepNum){
+    SmartWizard.prototype.goToStep = function (stepNum) {
+        var $this = this;
+
+        $(this.target).find('li').each(function (v) {
+            if ((v + 1) == stepNum) {
+                $(this).find('span').last().addClass($this.options.activeStepIconCssClass).removeClass($this.options.finishedStepIconCssClass);
+
+            }else if ((v + 1) > stepNum) {
+                $(this).find('span').last().addClass($this.options.inActiveStepIconCssClass).removeClass($this.options.activeStepIconCssClass).removeClass($this.options.finishedStepIconCssClass);
+
+            }
+
+        });
+
+
+
         var stepIdx = stepNum - 1;
         if (stepIdx >= 0 && stepIdx < this.steps.length) {
             _loadContent(this, stepIdx);
