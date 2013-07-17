@@ -303,3 +303,19 @@
   color: #EA8511;
   border: 1px solid #EA8511;  
 }
+
+.activeWizerdStep {
+    float: right;
+    width: 16px;
+    height: 16px;
+    
+    background:  url("../Icon_Library/Show_16x16.png");
+    background-repeat: no-repeat
+}
+.inActiveWizerdStep {
+    float: right;
+    width: 16px;
+    height: 16px;
+    background:  url("../Icon_Library/Hide_16x16.png");
+    background-repeat: no-repeat
+}
