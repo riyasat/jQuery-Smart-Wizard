@@ -1,9 +1,9 @@
 /*
- * SmartWizard 3.3.1 plugin
+ * SmartWizard 3.3.2 plugin
  * jQuery Wizard control Plugin
  * by Dipu
  *
- * Refactored and extended:
+ * Refactored and extended by Riyasat
  * https://github.com/mstratman/jQuery-Smart-Wizard
  *
  * Original URLs:
@@ -173,36 +173,41 @@ function SmartWizard(target, options) {
         }
     };
 
-    var _showStep = function($this, stepIdx) {
+    var _showStep = function ($this, stepIdx) {
         var selStep = $this.steps.eq(stepIdx);
         var curStep = $this.steps.eq($this.curStepIdx);
-        if(stepIdx != $this.curStepIdx){
-            if($.isFunction($this.options.onLeaveStep)) {
-                var context = { fromStep: $this.curStepIdx+1, toStep: stepIdx+1 };
-                if (! $this.options.onLeaveStep.call($this,$(curStep), context)){
+        if (stepIdx != $this.curStepIdx) {
+            if ($.isFunction($this.options.onLeaveStep)) {
+                var context = { fromStep: $this.curStepIdx + 1, toStep: stepIdx + 1 };
+                if (!$this.options.onLeaveStep.call($this, $(curStep), context)) {
                     return false;
                 }
             }
         }
-        $this.elmStepContainer.height(_step($this, selStep).outerHeight());
+        if ($this.options.height > 0) {
+            $this.elmStepContainer.height($this.options.height);
+        } else {
+            $this.elmStepContainer.height(_step($this, selStep).outerHeight());
+        }
+        
         var prevCurStepIdx = $this.curStepIdx;
-        $this.curStepIdx =  stepIdx;
-        if ($this.options.transitionEffect == 'slide'){
-            _step($this, curStep).slideUp("fast",function(e){
+        $this.curStepIdx = stepIdx;
+        if ($this.options.transitionEffect == 'slide') {
+            _step($this, curStep).slideUp("fast", function (e) {
                 _step($this, selStep).slideDown("fast");
-                _setupStep($this,curStep,selStep);
+                _setupStep($this, curStep, selStep);
             });
-        } else if ($this.options.transitionEffect == 'fade'){
-            _step($this, curStep).fadeOut("fast",function(e){
+        } else if ($this.options.transitionEffect == 'fade') {
+            _step($this, curStep).fadeOut("fast", function (e) {
                 _step($this, selStep).fadeIn("fast");
-                _setupStep($this,curStep,selStep);
+                _setupStep($this, curStep, selStep);
             });
-        } else if ($this.options.transitionEffect == 'slideleft'){
+        } else if ($this.options.transitionEffect == 'slideleft') {
             var nextElmLeft = 0;
             var nextElmLeft1 = null;
             var nextElmLeft = null;
             var curElementLeft = 0;
-            if(stepIdx > prevCurStepIdx){
+            if (stepIdx > prevCurStepIdx) {
                 nextElmLeft1 = $this.elmStepContainer.width() + 10;
                 nextElmLeft2 = 0;
                 curElementLeft = 0 - _step($this, curStep).outerWidth();
@@ -216,23 +221,23 @@ function SmartWizard(target, options) {
                 nextElmLeft2 = 0;
                 curElementLeft = 0 - $($(curStep, $this.target).attr("href"), $this.target).outerWidth();
             } else {
-                $($(curStep, $this.target).attr("href"), $this.target).animate({left:curElementLeft},"fast",function(e){
+                $($(curStep, $this.target).attr("href"), $this.target).animate({ left: curElementLeft }, "fast", function (e) {
                     $($(curStep, $this.target).attr("href"), $this.target).hide();
                 });
             }
 
-            _step($this, selStep).css("left",nextElmLeft1).show().animate({left:nextElmLeft2},"fast",function(e){
-                _setupStep($this,curStep,selStep);
+            _step($this, selStep).css("left", nextElmLeft1).show().animate({ left: nextElmLeft2 }, "fast", function (e) {
+                _setupStep($this, curStep, selStep);
             });
         } else {
             _step($this, curStep).hide();
             _step($this, selStep).show();
-            _setupStep($this,curStep,selStep);
+            _setupStep($this, curStep, selStep);
         }
         return true;
     };
 
-    var _setupStep = function($this, curStep, selStep) {
+    var _setupStep = function ($this, curStep, selStep) {
         $(curStep, $this.target).removeClass("selected");
         $(curStep, $this.target).addClass("done");
 
@@ -240,13 +245,26 @@ function SmartWizard(target, options) {
         $(selStep, $this.target).removeClass("done");
         $(selStep, $this.target).addClass("selected");
 
-        $(selStep, $this.target).attr("isDone",1);
+        $(selStep, $this.target).attr("isDone", 1);
 
         _adjustButton($this);
+        
+        var moving = { fromStep: parseInt($(curStep).attr('rel')), toStep: parseInt($(selStep).attr('rel')) };
+        if (moving.fromStep == moving.toStep) {
+            $(selStep, $this.target).find("." + $this.options.inActiveStepIconCssClass).addClass($this.options.activeStepIconCssClass).removeClass($this.options.inActiveStepIconCssClass);
+        } else if (moving.toStep > moving.fromStep) {
+            $(curStep, $this.target).find("." + $this.options.activeStepIconCssClass).addClass($this.options.finishedStepIconCssClass).removeClass($this.options.activeStepIconCssClass);
+            $(selStep, $this.target).find("." + $this.options.inActiveStepIconCssClass).addClass($this.options.activeStepIconCssClass).removeClass($this.options.inActiveStepIconCssClass);
+        } else if (moving.toStep < moving.fromStep) {
+            $(curStep, $this.target).find("." + $this.options.activeStepIconCssClass).addClass($this.options.inActiveStepIconCssClass).removeClass($this.options.activeStepIconCssClass);
+            $(selStep, $this.target).find("." + $this.options.finishedStepIconCssClass).addClass($this.options.activeStepIconCssClass).removeClass($this.options.finishedStepIconCssClass);
 
-        if($.isFunction($this.options.onShowStep)) {
+        }
+        if ($.isFunction($this.options.onShowStep)) {
             var context = { fromStep: parseInt($(curStep).attr('rel')), toStep: parseInt($(selStep).attr('rel')) };
-            if(! $this.options.onShowStep.call(this,$(selStep),context)){
+            
+
+            if (!$this.options.onShowStep.call(this, $(selStep), context)) {
                 return false;
             }
         }
@@ -284,7 +302,13 @@ function SmartWizard(target, options) {
             }
         }
         // Finish Button
-        if (! $this.steps.hasClass('disabled') || $this.options.enableFinishButton){
+        
+        if ($this.options.disableFinishButton &&  $this.curStepIdx < $this.steps.length-1) {
+            $($this.buttons.finish).addClass("buttonDisabled");
+            if ($this.options.hideButtonsOnDisabled) {
+                $($this.buttons.finish).hide();
+            }            
+        }else if (! $this.steps.hasClass('disabled') || $this.options.enableFinishButton){
             $($this.buttons.finish).removeClass("buttonDisabled");
             if ($this.options.hideButtonsOnDisabled) {
                 $($this.buttons.finish).show();
@@ -337,7 +361,7 @@ function SmartWizard(target, options) {
         var step = this.steps.eq(stepIdx);
         $(step, this.target).attr("isDone",1);
         $(step, this.target).removeClass("disabled").removeClass("selected").addClass("done");
-    }
+    };
     SmartWizard.prototype.disableStep = function(stepNum) {
         var stepIdx = stepNum - 1;
         if (stepIdx == this.curStepIdx || stepIdx < 0 || stepIdx >= this.steps.length) {
@@ -346,24 +370,23 @@ function SmartWizard(target, options) {
         var step = this.steps.eq(stepIdx);
         $(step, this.target).attr("isDone",0);
         $(step, this.target).removeClass("done").removeClass("selected").addClass("disabled");
-    }
+    };
     SmartWizard.prototype.currentStep = function() {
         return this.curStepIdx + 1;
-    }
-
+    };
     SmartWizard.prototype.showMessage = function (msg) {
         $('.content', this.msgBox).html(msg);
         this.msgBox.show();
-    }
+    };
     SmartWizard.prototype.hideMessage = function () {
         this.msgBox.fadeOut("normal");
-    }
+    };
     SmartWizard.prototype.showError = function(stepnum) {
         this.setError(stepnum, true);
-    }
+    };
     SmartWizard.prototype.hideError = function(stepnum) {
         this.setError(stepnum, false);
-    }
+    };
     SmartWizard.prototype.setError = function(stepnum,iserror) {
         if (typeof stepnum == "object") {
             iserror = stepnum.iserror;
@@ -371,12 +394,11 @@ function SmartWizard(target, options) {
         }
 
         if (iserror){
-            $(this.steps.eq(stepnum-1), this.target).addClass('error')
+            $(this.steps.eq(stepnum-1), this.target).addClass('error');
         }else{
             $(this.steps.eq(stepnum-1), this.target).removeClass("error");
         }
-    }
-
+    };
     SmartWizard.prototype.fixHeight = function(){
         var height = 0;
 
@@ -389,8 +411,7 @@ function SmartWizard(target, options) {
         // These values (5 and 20) are experimentally chosen.
         stepContainer.height(height + 5);
         this.elmStepContainer.height(height + 20);
-    }
-
+    };
     _init(this);
 };
 
@@ -444,7 +465,12 @@ $.fn.smartWizard.defaults = {
     ajaxType: "POST",
     onLeaveStep: null, // triggers when leaving a step
     onShowStep: null,  // triggers when showing a step
-    onFinish: null  // triggers when Finish button is clicked
+    onFinish: null,  // triggers when Finish button is clicked
+    height: 0,// set the height of content
+    disableFinishButton:false, // this will disable finish button on 2nd last step.
+    activeStepIconCssClass:"activeWizerdStep", // This will set the provided icon for active state
+    inActiveStepIconCssClass:"inActiveWizerdStep",  // This will set the provided icon for inactive state
+    finishedStepIconCssClass:"OkWizerdStep"  // This will set the provided icon for finish / done state
 };
 
 })(jQuery);
